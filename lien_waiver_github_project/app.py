@@ -1,10 +1,9 @@
 import os
 import streamlit as st
 from jinja2 import Template
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Preformatted, Spacer
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.units import inch
 
 # -------------------------------
 # Template configuration
@@ -39,7 +38,6 @@ fields = {
     "total_payments": st.text_input("Total Payments Received to Date"),
     "final_application_date": st.text_input("Date of Final Application for Payment"),
     "final_application_amount": st.text_input("Amount of Final Application for Payment"),
-    "notes": st.text_area("Notes (optional)")
 }
 
 # -------------------------------
@@ -53,39 +51,34 @@ if st.button("Generate PDF"):
 
     pdf_path = f"{waiver_type.replace(' ', '_')}.pdf"
 
-    # Create PDF document
+    # Create PDF document with wider margins for proper fit
     doc = SimpleDocTemplate(
         pdf_path,
         pagesize=LETTER,
-        leftMargin=50,
-        rightMargin=50,
-        topMargin=50,
-        bottomMargin=50
+        leftMargin=40,
+        rightMargin=40,
+        topMargin=40,
+        bottomMargin=40
     )
 
-    # Define paragraph style for preformatted text
-    style = ParagraphStyle(
-        name='Preformatted',
-        fontName='Courier',
-        fontSize=10.5,
-        leading=13,
+    # Preformatted style to preserve spacing, indentation, and line breaks
+    pre_style = ParagraphStyle(
+        name="Preformatted",
+        fontName="Courier",
+        fontSize=10,
+        leading=12,
         leftIndent=0,
         firstLineIndent=0,
-        spaceAfter=5
+        spaceAfter=6,
     )
 
-    # Replace tabs with spaces for consistent alignment
-    wrapped_text = rendered_text.replace('\t', '    ')
+    # Replace tabs with spaces for alignment
+    rendered_text = rendered_text.replace('\t', '    ')
 
-    # Split text into paragraphs at double newlines
-    paragraphs = wrapped_text.split('\n\n')
+    # Use Preformatted flowable for exact formatting
+    flowables = [Preformatted(rendered_text, pre_style)]
 
-    flowables = []
-    for para in paragraphs:
-        flowables.append(Paragraph(f'<pre>{para}</pre>', style))
-        flowables.append(Spacer(1, 6))  # small space between paragraphs
-
-    # Build PDF
+    # Build the PDF
     doc.build(flowables)
 
     st.success(f"PDF generated: {pdf_path}")
