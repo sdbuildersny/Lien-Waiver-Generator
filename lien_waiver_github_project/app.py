@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from jinja2 import Template
-from reportlab.platypus import SimpleDocTemplate, Preformatted, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
 
@@ -51,7 +51,7 @@ if st.button("Generate PDF"):
 
     pdf_path = f"{waiver_type.replace(' ', '_')}.pdf"
 
-    # Create PDF document with wider margins for proper fit
+    # Create PDF document
     doc = SimpleDocTemplate(
         pdf_path,
         pagesize=LETTER,
@@ -61,7 +61,7 @@ if st.button("Generate PDF"):
         bottomMargin=40
     )
 
-    # Preformatted style to preserve spacing, indentation, and line breaks
+    # Define style to preserve spacing and indentation
     pre_style = ParagraphStyle(
         name="Preformatted",
         fontName="Courier",
@@ -75,8 +75,14 @@ if st.button("Generate PDF"):
     # Replace tabs with spaces for alignment
     rendered_text = rendered_text.replace('\t', '    ')
 
-    # Use Preformatted flowable for exact formatting
-    flowables = [Preformatted(rendered_text, pre_style)]
+    # Split the text into paragraphs at double newlines
+    paragraphs = rendered_text.split("\n\n")
+
+    # Convert each paragraph to a Paragraph flowable
+    flowables = []
+    for para in paragraphs:
+        flowables.append(Paragraph(f"<pre>{para}</pre>", pre_style))
+        flowables.append(Spacer(1, 6))
 
     # Build the PDF
     doc.build(flowables)
