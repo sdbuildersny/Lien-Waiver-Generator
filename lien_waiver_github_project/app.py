@@ -25,7 +25,6 @@ st.title("Lien Waiver Generator")
 
 waiver_type = st.selectbox("Select Waiver Type", list(TEMPLATES.keys()))
 
-# User input fields
 fields = {
     "subcontractor": st.text_input("Subcontractor"),
     "contractor": st.text_input("Contractor"),
@@ -44,14 +43,13 @@ fields = {
 # Generate PDF
 # -------------------------------
 if st.button("Generate PDF"):
-    # Load and render template
     template_text = load_template(TEMPLATES[waiver_type])
     template = Template(template_text)
     rendered_text = template.render(**fields)
 
     pdf_path = f"{waiver_type.replace(' ', '_')}.pdf"
 
-    # Create PDF document
+    # Create PDF
     doc = SimpleDocTemplate(
         pdf_path,
         pagesize=LETTER,
@@ -61,7 +59,7 @@ if st.button("Generate PDF"):
         bottomMargin=40
     )
 
-    # Define style to preserve spacing and indentation
+    # Paragraph style for exact formatting
     pre_style = ParagraphStyle(
         name="Preformatted",
         fontName="Courier",
@@ -72,19 +70,19 @@ if st.button("Generate PDF"):
         spaceAfter=6,
     )
 
-    # Replace tabs with spaces for alignment
+    # Replace tabs with spaces to keep alignment
     rendered_text = rendered_text.replace('\t', '    ')
 
-    # Split the text into paragraphs at double newlines
+    # Split text into paragraphs on double newlines
     paragraphs = rendered_text.split("\n\n")
 
-    # Convert each paragraph to a Paragraph flowable
     flowables = []
     for para in paragraphs:
+        # Wrap each paragraph in <pre> to preserve spacing/indentation
         flowables.append(Paragraph(f"<pre>{para}</pre>", pre_style))
-        flowables.append(Spacer(1, 6))
+        flowables.append(Spacer(1, 6))  # small space between paragraphs
 
-    # Build the PDF
+    # Build PDF
     doc.build(flowables)
 
     st.success(f"PDF generated: {pdf_path}")
