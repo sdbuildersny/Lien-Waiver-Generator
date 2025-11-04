@@ -1,8 +1,9 @@
 import os
 import streamlit as st
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import LETTER
 from jinja2 import Template
+from reportlab.platypus import SimpleDocTemplate, Preformatted
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import LETTER
 
 # -------------------------------
 # Template configuration
@@ -71,31 +72,25 @@ if st.button("Generate PDF"):
         notes=notes
     )
 
-    # PDF file path
+    # PDF path
     pdf_path = f"{waiver_type.replace(' ', '_')}.pdf"
-    width, height = LETTER
-    c = canvas.Canvas(pdf_path, pagesize=LETTER)
 
-    # Use monospaced font to preserve exact formatting
-    font_name = "Courier"
-    font_size = 11
-    c.setFont(font_name, font_size)
+    # Create PDF document
+    doc = SimpleDocTemplate(pdf_path, pagesize=LETTER,
+                            leftMargin=50, rightMargin=50,
+                            topMargin=50, bottomMargin=50)
 
-    # Margins and line height
-    margin = 50
-    y_position = height - margin
-    line_height = font_size + 3
+    # Define monospaced style
+    styles = getSampleStyleSheet()
+    preformatted_style = styles["Code"]  # Monospaced
+    preformatted_style.fontSize = 11
+    preformatted_style.leading = 14
 
-    # Write each line exactly as in the template
-    for line in rendered_text.splitlines():
-        if y_position < margin:  # Start a new page
-            c.showPage()
-            c.setFont(font_name, font_size)
-            y_position = height - margin
-        c.drawString(margin, y_position, line)
-        y_position -= line_height
+    # Use Preformatted to preserve exact formatting
+    flowable = Preformatted(rendered_text, preformatted_style)
 
-    c.save()
+    # Build PDF
+    doc.build([flowable])
 
     st.success(f"PDF generated: {pdf_path}")
     st.download_button(
