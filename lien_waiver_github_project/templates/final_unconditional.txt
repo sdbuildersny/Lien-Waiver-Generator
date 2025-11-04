@@ -13,9 +13,9 @@ Total Payments Received to Date: {{ total_payments }}
 Date of Final Application for Payment: {{ final_application_date }}
 Amount of Final Application for Payment: {{ final_application_amount }}
 
-STATE OF 			)
-				) ss.:
-COUNTY OF 			)
+STATE OF :			
+				
+COUNTY OF :			
 
 WHEREAS {{ subcontractor }} (the "Subcontractor") has entered into a contract with the above-referenced Contractor for the supplying of materials and/or labor for the above-referenced Project. The Subcontractor has requisitioned for the final payment from Contractor pursuant to the above-referenced Contract.
 
@@ -41,10 +41,12 @@ IN WITNESS WHEREOF, this Final Unconditional Waiver of Lien and Release has been
 
 								[                        ]
 
+
+
 Subscribed and sworn to me this				By: _______________________
 _____ day of ___________ 2025				
-Print Name:
+Print Name:									Title:
 
-__________________________		Title:				
+__________________________					
 Notary Public
 
