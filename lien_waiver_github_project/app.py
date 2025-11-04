@@ -4,6 +4,12 @@ from jinja2 import Template
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
+import locale
+
+# -------------------------------
+# Locale for number formatting
+# -------------------------------
+locale.setlocale(locale.LC_ALL, '')  # system locale
 
 # -------------------------------
 # Template configuration
@@ -17,6 +23,16 @@ def load_template(template_name):
     template_path = os.path.join(base_dir, "templates", template_name)
     with open(template_path, "r", encoding="utf-8") as f:
         return f.read()
+
+# -------------------------------
+# Formatting functions
+# -------------------------------
+def format_currency(value):
+    try:
+        number = float(value)
+        return f"${number:,.2f}"
+    except:
+        return value
 
 # -------------------------------
 # Streamlit UI
@@ -45,11 +61,23 @@ fields = {
 if st.button("Generate PDF"):
     template_text = load_template(TEMPLATES[waiver_type])
     template = Template(template_text)
-    rendered_text = template.render(**fields)
+
+    # Format numeric fields
+    formatted_fields = fields.copy()
+    for key in ["original_amount", "change_orders", "adjusted_amount", "total_payments", "final_application_amount"]:
+        formatted_fields[key] = format_currency(fields[key])
+
+    # Render template
+    rendered_text = template.render(**formatted_fields)
+
+    # Wrap all field values in <b> for bold
+    for key, value in formatted_fields.items():
+        if value.strip():  # only wrap non-empty
+            rendered_text = rendered_text.replace(value, f"<b>{value}</b>")
 
     pdf_path = f"{waiver_type.replace(' ', '_')}.pdf"
 
-    # Create PDF
+    # PDF document setup
     doc = SimpleDocTemplate(
         pdf_path,
         pagesize=LETTER,
@@ -59,7 +87,7 @@ if st.button("Generate PDF"):
         bottomMargin=40
     )
 
-    # Style to preserve spacing, indentation, and line breaks
+    # Preformatted style to preserve spacing/indentation
     pre_style = ParagraphStyle(
         name="Preformatted",
         fontName="Courier",
@@ -70,16 +98,17 @@ if st.button("Generate PDF"):
         spaceAfter=2,
     )
 
-    # Replace tabs with spaces for alignment
+    # Replace tabs with spaces
     rendered_text = rendered_text.replace('\t', '    ')
 
-    # Split template into individual lines to preserve exact formatting
+    # Split into individual lines to preserve exact formatting
     lines = rendered_text.splitlines()
 
     flowables = []
     for line in lines:
         flowables.append(Paragraph(f"<pre>{line}</pre>", pre_style))
 
+    # Build PDF
     doc.build(flowables)
 
     st.success(f"PDF generated: {pdf_path}")
