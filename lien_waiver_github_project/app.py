@@ -2,6 +2,7 @@ import os
 import streamlit as st
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import LETTER
+from reportlab.lib.utils import simpleSplit
 from jinja2 import Template
 
 # -------------------------------
@@ -73,11 +74,29 @@ if st.button("Generate PDF"):
 
     # Save PDF
     pdf_path = f"{waiver_type.replace(' ', '_')}.pdf"
-    c = canvas.Canvas(pdf_path, pagesize=LETTER)
     width, height = LETTER
+    c = canvas.Canvas(pdf_path, pagesize=LETTER)
     text_obj = c.beginText(50, height - 50)
-    for line in rendered_text.splitlines():
+    text_obj.setFont("Helvetica", 11)
+
+    # Wrap text to fit page width
+    max_width = width - 100  # 50pt margin each side
+    lines = simpleSplit(rendered_text, "Helvetica", 11, max_width)
+
+    line_height = 14
+    y_position = height - 50
+
+    for line in lines:
+        if y_position < 50:  # Start new page if bottom margin reached
+            c.drawText(text_obj)
+            c.showPage()
+            text_obj = c.beginText(50, height - 50)
+            text_obj.setFont("Helvetica", 11)
+            y_position = height - 50
+
         text_obj.textLine(line)
+        y_position -= line_height
+
     c.drawText(text_obj)
     c.save()
 
