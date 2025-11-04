@@ -59,7 +59,7 @@ if st.button("Generate PDF"):
         bottomMargin=40
     )
 
-    # Paragraph style for exact formatting
+    # Style to preserve spacing, indentation, and line breaks
     pre_style = ParagraphStyle(
         name="Preformatted",
         fontName="Courier",
@@ -67,22 +67,19 @@ if st.button("Generate PDF"):
         leading=12,
         leftIndent=0,
         firstLineIndent=0,
-        spaceAfter=6,
+        spaceAfter=2,
     )
 
-    # Replace tabs with spaces to keep alignment
+    # Replace tabs with spaces for alignment
     rendered_text = rendered_text.replace('\t', '    ')
 
-    # Split text into paragraphs on double newlines
-    paragraphs = rendered_text.split("\n\n")
+    # Split template into individual lines to preserve exact formatting
+    lines = rendered_text.splitlines()
 
     flowables = []
-    for para in paragraphs:
-        # Wrap each paragraph in <pre> to preserve spacing/indentation
-        flowables.append(Paragraph(f"<pre>{para}</pre>", pre_style))
-        flowables.append(Spacer(1, 6))  # small space between paragraphs
+    for line in lines:
+        flowables.append(Paragraph(f"<pre>{line}</pre>", pre_style))
 
-    # Build PDF
     doc.build(flowables)
 
     st.success(f"PDF generated: {pdf_path}")
