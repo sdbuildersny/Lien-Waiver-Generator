@@ -2,7 +2,6 @@ import os
 import streamlit as st
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import LETTER
-from reportlab.lib.utils import simpleSplit
 from jinja2 import Template
 
 # -------------------------------
@@ -72,33 +71,35 @@ if st.button("Generate PDF"):
         notes=notes
     )
 
-    # Save PDF
+    # PDF file path
     pdf_path = f"{waiver_type.replace(' ', '_')}.pdf"
     width, height = LETTER
     c = canvas.Canvas(pdf_path, pagesize=LETTER)
-    text_obj = c.beginText(50, height - 50)
-    text_obj.setFont("Helvetica", 11)
 
-    # Wrap text to fit page width
-    max_width = width - 100  # 50pt margin each side
-    lines = simpleSplit(rendered_text, "Helvetica", 11, max_width)
+    # Use monospaced font to preserve exact formatting
+    font_name = "Courier"
+    font_size = 11
+    c.setFont(font_name, font_size)
 
-    line_height = 14
-    y_position = height - 50
+    # Margins and line height
+    margin = 50
+    y_position = height - margin
+    line_height = font_size + 3
 
-    for line in lines:
-        if y_position < 50:  # Start new page if bottom margin reached
-            c.drawText(text_obj)
+    # Write each line exactly as in the template
+    for line in rendered_text.splitlines():
+        if y_position < margin:  # Start a new page
             c.showPage()
-            text_obj = c.beginText(50, height - 50)
-            text_obj.setFont("Helvetica", 11)
-            y_position = height - 50
-
-        text_obj.textLine(line)
+            c.setFont(font_name, font_size)
+            y_position = height - margin
+        c.drawString(margin, y_position, line)
         y_position -= line_height
 
-    c.drawText(text_obj)
     c.save()
 
     st.success(f"PDF generated: {pdf_path}")
-    st.download_button("Download PDF", data=open(pdf_path, "rb").read(), file_name=pdf_path)
+    st.download_button(
+        "Download PDF",
+        data=open(pdf_path, "rb").read(),
+        file_name=pdf_path
+    )
