@@ -93,7 +93,7 @@ if st.button("Generate PDF"):
     # Preformatted style to preserve spacing/indentation
     pre_style = ParagraphStyle(
         name="Preformatted",
-        fontName="Courier",
+        fontName="Times-Roman",  # Times New Roman
         fontSize=10,
         leading=12,
         leftIndent=0,
