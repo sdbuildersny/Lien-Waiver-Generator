@@ -4,6 +4,7 @@ from jinja2 import Template
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
 import locale
 
 # -------------------------------
@@ -90,10 +91,33 @@ if st.button("Generate PDF"):
         bottomMargin=40
     )
 
-    # Preformatted style to preserve spacing/indentation
+    # Split lines
+    lines = rendered_text.splitlines()
+    flowables = []
+
+    # Header (first non-empty line)
+    header_line = None
+    for idx, line in enumerate(lines):
+        if line.strip():
+            header_line = line.strip()
+            lines.pop(idx)
+            break
+
+    if header_line:
+        header_style = ParagraphStyle(
+            name="Header",
+            fontName="Times-Roman",
+            fontSize=14,          # larger font
+            leading=16,
+            alignment=TA_CENTER,  # centered
+            spaceAfter=12,
+        )
+        flowables.append(Paragraph(f"<b>{header_line}</b>", header_style))
+
+    # Preformatted style for the rest of the document
     pre_style = ParagraphStyle(
         name="Preformatted",
-        fontName="Times-Roman",  # Times New Roman
+        fontName="Times-Roman",
         fontSize=10,
         leading=12,
         leftIndent=0,
@@ -101,13 +125,10 @@ if st.button("Generate PDF"):
         spaceAfter=2,
     )
 
-    # Replace tabs with spaces
-    rendered_text = rendered_text.replace('\t', '    ')
-
-    # Split into lines to preserve formatting
-    lines = rendered_text.splitlines()
-
-    flowables = [Paragraph(f"<pre>{line}</pre>", pre_style) for line in lines]
+    # Replace tabs with spaces and add remaining lines
+    lines = [line.replace('\t', '    ') for line in lines]
+    for line in lines:
+        flowables.append(Paragraph(f"<pre>{line}</pre>", pre_style))
 
     doc.build(flowables)
 
