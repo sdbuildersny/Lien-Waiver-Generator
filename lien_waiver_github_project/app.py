@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from jinja2 import Template
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Preformatted
+from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
@@ -10,10 +10,10 @@ import locale
 # -------------------------------
 # Locale for number formatting
 # -------------------------------
-locale.setlocale(locale.LC_ALL, '')
+locale.setlocale(locale.LC_ALL, '')  # system locale
 
 # -------------------------------
-# Load templates dynamically
+# Load all templates dynamically
 # -------------------------------
 template_folder = os.path.join(os.path.dirname(__file__), "templates")
 templates_list = [f for f in os.listdir(template_folder) if f.endswith(".txt")]
@@ -71,11 +71,17 @@ if st.button("Generate PDF"):
     for key in ["original_amount", "change_orders", "adjusted_amount", "total_payments", "final_application_amount"]:
         formatted_fields[key] = format_currency(fields[key])
 
-    # Render template with values
+    # Render template
     rendered_text = template.render(**formatted_fields)
+
+    # Wrap all input values in <b> for bold
+    for key, value in formatted_fields.items():
+        if value.strip():  # only wrap non-empty
+            rendered_text = rendered_text.replace(value, f"<b>{value}</b>")
 
     pdf_path = f"{waiver_type.replace(' ', '_')}.pdf"
 
+    # PDF document setup
     doc = SimpleDocTemplate(
         pdf_path,
         pagesize=LETTER,
@@ -89,7 +95,7 @@ if st.button("Generate PDF"):
     lines = rendered_text.splitlines()
     flowables = []
 
-    # Extract header (first non-empty line)
+    # Header (first non-empty line)
     header_line = None
     for idx, line in enumerate(lines):
         if line.strip():
@@ -101,34 +107,29 @@ if st.button("Generate PDF"):
         header_style = ParagraphStyle(
             name="Header",
             fontName="Times-Roman",
-            fontSize=14,
+            fontSize=14,          # larger font
             leading=16,
-            alignment=TA_CENTER,
-            spaceAfter=12
+            alignment=TA_CENTER,  # centered
+            spaceAfter=12,
         )
         flowables.append(Paragraph(f"<b>{header_line}</b>", header_style))
 
-    # Preformatted style for body text
+    # Preformatted style for the rest of the document
     pre_style = ParagraphStyle(
         name="Preformatted",
         fontName="Times-Roman",
         fontSize=10,
         leading=12,
+        leftIndent=0,
+        firstLineIndent=0,
+        spaceAfter=2,
     )
 
-    # Bold inputs inside the preformatted text
-    for key, value in formatted_fields.items():
-        if value.strip():
-            rendered_text = rendered_text.replace(value, f"<b>{value}</b>")
-
-    # Re-split lines after bolding
-    lines = rendered_text.splitlines()
+    # Preserve exact formatting from the .txt files (including signature section)
+    lines = [line.replace('\t', '    ') for line in lines]
     for line in lines:
-        # Replace tabs with spaces for proper alignment
-        line = line.replace("\t", "    ")
-        flowables.append(Preformatted(line, pre_style))
+        flowables.append(Paragraph(f"<pre>{line}</pre>", pre_style))
 
-    # Build PDF
     doc.build(flowables)
 
     st.success(f"PDF generated: {pdf_path}")
