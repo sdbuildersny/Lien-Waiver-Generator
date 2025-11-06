@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from jinja2 import Template
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
 import locale
@@ -12,21 +12,20 @@ import locale
 locale.setlocale(locale.LC_ALL, '')  # system locale
 
 # -------------------------------
-# Template configuration
+# Load all templates dynamically
 # -------------------------------
-TEMPLATES = {
-    "Final Unconditional": "final_unconditional.txt",
-}
+template_folder = os.path.join(os.path.dirname(__file__), "templates")
+templates_list = [f for f in os.listdir(template_folder) if f.endswith(".txt")]
+TEMPLATES = {os.path.splitext(f)[0]: f for f in templates_list}
 
+# -------------------------------
+# Helper functions
+# -------------------------------
 def load_template(template_name):
-    base_dir = os.path.dirname(__file__)
-    template_path = os.path.join(base_dir, "templates", template_name)
+    template_path = os.path.join(template_folder, TEMPLATES[template_name])
     with open(template_path, "r", encoding="utf-8") as f:
         return f.read()
 
-# -------------------------------
-# Formatting functions
-# -------------------------------
 def format_currency(value):
     try:
         number = float(value)
@@ -38,6 +37,10 @@ def format_currency(value):
 # Streamlit UI
 # -------------------------------
 st.title("Lien Waiver Generator")
+
+if not templates_list:
+    st.warning("No templates found in the 'templates' folder.")
+    st.stop()
 
 waiver_type = st.selectbox("Select Waiver Type", list(TEMPLATES.keys()))
 
@@ -59,7 +62,7 @@ fields = {
 # Generate PDF
 # -------------------------------
 if st.button("Generate PDF"):
-    template_text = load_template(TEMPLATES[waiver_type])
+    template_text = load_template(waiver_type)
     template = Template(template_text)
 
     # Format numeric fields
@@ -70,7 +73,7 @@ if st.button("Generate PDF"):
     # Render template
     rendered_text = template.render(**formatted_fields)
 
-    # Wrap all field values in <b> for bold
+    # Wrap all input values in <b> for bold
     for key, value in formatted_fields.items():
         if value.strip():  # only wrap non-empty
             rendered_text = rendered_text.replace(value, f"<b>{value}</b>")
@@ -101,14 +104,11 @@ if st.button("Generate PDF"):
     # Replace tabs with spaces
     rendered_text = rendered_text.replace('\t', '    ')
 
-    # Split into individual lines to preserve exact formatting
+    # Split into lines to preserve formatting
     lines = rendered_text.splitlines()
 
-    flowables = []
-    for line in lines:
-        flowables.append(Paragraph(f"<pre>{line}</pre>", pre_style))
+    flowables = [Paragraph(f"<pre>{line}</pre>", pre_style) for line in lines]
 
-    # Build PDF
     doc.build(flowables)
 
     st.success(f"PDF generated: {pdf_path}")
