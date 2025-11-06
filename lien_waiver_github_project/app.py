@@ -114,6 +114,20 @@ if st.button("Generate PDF"):
         )
         flowables.append(Paragraph(f"<b>{header_line}</b>", header_style))
 
+    # Automatically clean up signature section
+    signature_keywords = ["By:", "Print Name:", "Title:", "Notary Public"]
+    new_lines = []
+    inserted_spacing = False
+    for line in lines:
+        if any(keyword in line for keyword in signature_keywords) and not inserted_spacing:
+            # Add extra blank lines before signature section
+            new_lines.append("")
+            new_lines.append("")
+            new_lines.append("")
+            inserted_spacing = True
+        new_lines.append(line)
+    lines = new_lines
+
     # Preformatted style for the rest of the document
     pre_style = ParagraphStyle(
         name="Preformatted",
