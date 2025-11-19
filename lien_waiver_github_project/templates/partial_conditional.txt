@@ -30,13 +30,28 @@ ___________________________ ("Subcontractor"), for and in consideration of the p
 8.	Any signature delivered via facsimile or other electronic means, e.g., Adobe Portable Document Format (PDF) sent by electronic mail, shall be deemed an original signature hereto. 
 IN WITNESS WHEREOF, this Partial Waiver of Lien and Release has been executed this ____ day of _______________ 2025.
 								
-																					              [                    ]
 
 
 
-		Subscribed and sworn to me this													         By: _______________________	
+[   {{ subcontractor }}  ]
+
+
+
+ By: _______________________
+
+ Print Name:
+
+ Title:
+
+
+
+
+
+Subscribed and sworn to me this													        	
         _____ day of ___________ 2025
-																		                         Print Name:
+																		                         
 																		
-		__________________________																 Title:	
+		__________________________																	
 			Notary Public
+
+		
