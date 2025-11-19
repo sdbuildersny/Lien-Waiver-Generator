@@ -13,9 +13,9 @@ Requisition No.: {{requisition_no}}
 Date of this Requisition: {{requisition_date}}
 Amount of this Requisition: {{requisition_amount}}
 
-STATE OF 			)
-				) ss.:
-COUNTY OF             		)
+STATE OF 			):
+				
+COUNTY OF             		):
 
 ___________________________ ("Subcontractor"), for and in consideration of the payments made to it, for labor employed in and materials furnished for the construction of the above-referenced Project, the receipt and sufficiency of which is hereby acknowledged, hereby certifies as follows:
 
