@@ -15,7 +15,7 @@ Amount of Final Application for Payment: {{ final_application_amount }}
 
 STATE OF 			):			
 				
-COUNTY OF :			
+COUNTY OF             		):		
 
 WHEREAS {{ subcontractor }} (the "Subcontractor") has entered into a contract with the above-referenced Contractor for the supplying of materials and/or labor for the above-referenced Project. The Subcontractor has requisitioned for the final payment from Contractor pursuant to the above-referenced Contract.
 
