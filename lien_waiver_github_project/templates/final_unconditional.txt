@@ -1,11 +1,11 @@
 SUBCONTRACTOR’S UNCONDITIONAL FINAL LIEN WAIVER AND RELEASE AND PAYMENT RECEIPT AFFIDAVIT
 
 
-Subcontractor: {{ subcontractor }}
-Contractor: {{ contractor }}
-Owner: {{ owner }}
-Premises/Project: {{ premises_project }}
-Contract Date: {{ contract_date }}
+Subcontractor: {{ subcontractor }}</b>
+Contractor: {{ contractor }}</b>
+Owner: {{ owner }}</b>
+Premises/Project: {{ premises_project }}</b>
+Contract Date: {{ contract_date }}</b>
 Original Contract Amount: <b>{{ original_amount }}</b>
 Change Order Amounts: <b>{{ change_orders }}</b>
 Adjusted Contract Amount: <b>{{ adjusted_amount }}</b>
