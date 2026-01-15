@@ -1,10 +1,10 @@
 PARTIAL UNCONDITIONAL LIEN WAIVER AND RELEASE UPON PROGRESS PAYMENT
 
-Subcontractor: {{ subcontractor }}
-Contractor: {{ contractor }}
-Owner: {{ owner }}
-Premises/Project: {{ premises_project }}
-Contract Date: {{ contract_date }}
+Subcontractor: <b>{{ subcontractor }}</b>
+Contractor: <b>{{ contractor }}</b>
+Owner: <b>{{ owner }}</b>
+Premises/Project: <b>{{ premises_project }}</b>
+Contract Date: <b>{{ contract_date }}</b>
 Original Contract Amount: <b>{{ original_amount }}</b>
 Change Order Amounts: <b>{{ change_orders }}</b>
 Adjusted Contract Amount: <b>{{ adjusted_amount }}</b>
