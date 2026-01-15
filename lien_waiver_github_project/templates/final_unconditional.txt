@@ -6,12 +6,13 @@ Contractor: {{ contractor }}
 Owner: {{ owner }}
 Premises/Project: {{ premises_project }}
 Contract Date: {{ contract_date }}
-Original Contract Amount: {{ original_amount }}
-Change Order Amounts: {{ change_orders }}
-Adjusted Contract Amount: {{ adjusted_amount }}
-Total Payments Received to Date: {{ total_payments }}
-Date of Final Application for Payment: {{ final_application_date }}
-Amount of Final Application for Payment: {{ final_application_amount }}
+Original Contract Amount: <b>{{ original_amount }}</b>
+Change Order Amounts: <b>{{ change_orders }}</b>
+Adjusted Contract Amount: <b>{{ adjusted_amount }}</b>
+Total Payments Received to Date: <b>{{ total_payments }}</b>
+Requisition No.: <b>{{ requisition_number }}</b>
+Date of Final Application for Payment: <b>{{ final_application_date }}</b>
+Amount of Final Application for Payment: <b>{{ final_application_amount }}</b>
 
 
 STATE OF 			):			
