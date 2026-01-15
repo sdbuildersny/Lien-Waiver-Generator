@@ -14,83 +14,92 @@ import os
 locale.setlocale(locale.LC_ALL, '')  # system locale
 
 # -------------------------------
-# Load all templates dynamically
+# Load templates
 # -------------------------------
 template_folder = os.path.join(os.path.dirname(__file__), "templates")
 templates_list = [f for f in os.listdir(template_folder) if f.endswith(".txt")]
 TEMPLATES = {os.path.splitext(f)[0]: f for f in templates_list}
 
 # -------------------------------
-# Helper functions
+# Streamlit page config
 # -------------------------------
-def load_template(template_name):
-    template_path = os.path.join(template_folder, TEMPLATES[template_name])
-    with open(template_path, "r", encoding="utf-8") as f:
-        return f.read()
-
-def format_currency(value):
-    try:
-        number = float(value)
-        return f"${number:,.2f}"
-    except:
-        return value
+st.set_page_config(
+    page_title="Lien Waiver Generator",
+    page_icon="📝",
+    layout="centered",
+)
 
 # -------------------------------
-# Streamlit UI
+# Landing page
 # -------------------------------
-st.title("Lien Waiver Generator")
+st.markdown("<h1 style='text-align: center;'>📝 Lien Waiver Generator</h1>", unsafe_allow_html=True)
+st.markdown(
+    """
+    Generate professional lien waivers quickly and easily.  
+    Fill in the details below and click 'Generate PDF' to download your waiver.
+    """,
+    unsafe_allow_html=True
+)
+st.markdown("---")
 
 if not templates_list:
-    st.warning("No templates found in the 'templates' folder.")
+    st.warning("⚠️ No templates found in the 'templates' folder.")
     st.stop()
 
-waiver_type = st.selectbox("Select Waiver Type", list(TEMPLATES.keys()))
+# -------------------------------
+# Waiver type selection
+# -------------------------------
+waiver_type = st.selectbox(
+    "Select Waiver Type",
+    options=list(TEMPLATES.keys()),
+    help="Choose the type of waiver you want to generate."
+)
+
+st.markdown("### Enter Waiver Details")
+st.info("Fields marked below will appear bold in the generated PDF.")
 
 # -------------------------------
 # User input fields
 # -------------------------------
-fields = {
-    "subcontractor": st.text_input("Subcontractor"),
-    "contractor": st.text_input("Contractor"),
-    "owner": st.text_input("Owner"),
-    "premises_project": st.text_input("Premises/Project"),
-    "contract_date": st.text_input("Contract Date"),
-    "original_amount": st.text_input("Original Contract Amount"),
-    "change_orders": st.text_input("Change Order Amounts"),
-    "adjusted_amount": st.text_input("Adjusted Contract Amount"),
-    "total_payments": st.text_input("Total Payments Received to Date"),
-    "requisition_number": st.text_input("Requisition No."),
-    "date_of_this_requisition": st.text_input("Date of this Requisition"),
-    "amount_of_this_requisition": st.text_input("Amount of this Requisition"),
-    "final_application_date": st.text_input("Date of Final Application for Payment"),
-    "final_application_amount": st.text_input("Amount of Final Application for Payment"),
-}
+col1, col2 = st.columns(2)
+fields = {}
+
+with col1:
+    fields["subcontractor"] = st.text_input("Subcontractor")
+    fields["contractor"] = st.text_input("Contractor")
+    fields["owner"] = st.text_input("Owner")
+    fields["premises_project"] = st.text_input("Premises/Project")
+    fields["contract_date"] = st.text_input("Contract Date")
+    fields["original_amount"] = st.text_input("Original Contract Amount")
+    fields["change_orders"] = st.text_input("Change Order Amounts")
+
+with col2:
+    fields["adjusted_amount"] = st.text_input("Adjusted Contract Amount")
+    fields["total_payments"] = st.text_input("Total Payments Received to Date")
+    fields["requisition_number"] = st.text_input("Requisition No.")
+    fields["date_of_this_requisition"] = st.text_input("Date of this Requisition")
+    fields["amount_of_this_requisition"] = st.text_input("Amount of this Requisition")
+    fields["final_application_date"] = st.text_input("Date of Final Application for Payment")
+    fields["final_application_amount"] = st.text_input("Amount of Final Application for Payment")
 
 # -------------------------------
 # Generate PDF
 # -------------------------------
 if st.button("Generate PDF"):
     # Load template
-    template_text = load_template(waiver_type)
+    template_text = open(os.path.join(template_folder, TEMPLATES[waiver_type]), "r", encoding="utf-8").read()
     template = Template(template_text)
 
     # Format numeric fields
     formatted_fields = fields.copy()
     for key in ["original_amount", "change_orders", "adjusted_amount", "total_payments", "amount_of_this_requisition", "final_application_amount"]:
-        formatted_fields[key] = format_currency(fields[key])
+        formatted_fields[key] = "${:,.2f}".format(float(fields[key])) if fields[key] else ""
 
-    # Ensure all fields exist in template even if blank
-    for key in formatted_fields:
-        if formatted_fields[key] is None:
-            formatted_fields[key] = ""
-
-    # Render template with safe bold
-    # In your .txt template, wrap bold fields like:
-    # {{ original_amount | safe }} or <b>{{ original_amount }}</b>
+    # Render template
     rendered_text = template.render(**formatted_fields)
 
     # -------------------------------
-    # Create PDF in memory
+    # Build PDF in memory
     # -------------------------------
     pdf_buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -106,50 +115,42 @@ if st.button("Generate PDF"):
     flowables = []
 
     # Header (first non-empty line)
-    header_line = None
     for idx, line in enumerate(lines):
         if line.strip():
-            header_line = line.strip()
+            flowables.append(Paragraph(f"<b>{line.strip()}</b>", ParagraphStyle(
+                name="Header",
+                fontName="Times-Roman",
+                fontSize=14,
+                leading=16,
+                alignment=TA_CENTER,
+                spaceAfter=12,
+            )))
             lines.pop(idx)
             break
 
-    if header_line:
-        header_style = ParagraphStyle(
-            name="Header",
-            fontName="Times-Roman",
-            fontSize=14,
-            leading=16,
-            alignment=TA_CENTER,
-            spaceAfter=12,
-        )
-        flowables.append(Paragraph(f"<b>{header_line}</b>", header_style))
-
-    # Preformatted style for rest of document
-    pre_style = ParagraphStyle(
-        name="Preformatted",
+    # Body
+    body_style = ParagraphStyle(
+        name="Body",
         fontName="Times-Roman",
         fontSize=10,
         leading=12,
         leftIndent=0,
         firstLineIndent=0,
-        spaceAfter=2,
+        spaceAfter=4,
     )
 
-    # Preserve formatting (signature section included)
-    lines = [line.replace('\t', '    ') for line in lines]
     for line in lines:
-        flowables.append(Paragraph(f"<pre>{line}</pre>", pre_style))
+        if line.strip():
+            flowables.append(Paragraph(line, body_style))
 
     doc.build(flowables)
 
-    # Download button
-    st.success("PDF generated successfully!")
+    st.success("✅ PDF generated successfully!")
     st.download_button(
         "Download PDF",
         data=pdf_buffer.getvalue(),
         file_name=f"{waiver_type.replace(' ', '_')}.pdf",
         mime="application/pdf"
     )
-
 
 
