@@ -1,4 +1,4 @@
-import os
+import io
 import streamlit as st
 from jinja2 import Template
 from reportlab.platypus import SimpleDocTemplate, Paragraph
@@ -6,6 +6,7 @@ from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 import locale
+import os
 
 # -------------------------------
 # Locale for number formatting
@@ -45,6 +46,9 @@ if not templates_list:
 
 waiver_type = st.selectbox("Select Waiver Type", list(TEMPLATES.keys()))
 
+# -------------------------------
+# User input fields
+# -------------------------------
 fields = {
     "subcontractor": st.text_input("Subcontractor"),
     "contractor": st.text_input("Contractor"),
@@ -66,27 +70,31 @@ fields = {
 # Generate PDF
 # -------------------------------
 if st.button("Generate PDF"):
+    # Load template
     template_text = load_template(waiver_type)
     template = Template(template_text)
 
     # Format numeric fields
     formatted_fields = fields.copy()
-    for key in ["original_amount", "change_orders", "adjusted_amount", "total_payments", "final_application_amount"]:
+    for key in ["original_amount", "change_orders", "adjusted_amount", "total_payments", "amount_of_this_requisition", "final_application_amount"]:
         formatted_fields[key] = format_currency(fields[key])
 
-    # Render template
+    # Ensure all fields exist in template even if blank
+    for key in formatted_fields:
+        if formatted_fields[key] is None:
+            formatted_fields[key] = ""
+
+    # Render template with safe bold
+    # In your .txt template, wrap bold fields like:
+    # {{ original_amount | safe }} or <b>{{ original_amount }}</b>
     rendered_text = template.render(**formatted_fields)
 
-    # Wrap all input values in <b> for bold
-    for key, value in formatted_fields.items():
-        if value.strip():  # only wrap non-empty
-            rendered_text = rendered_text.replace(value, f"<b>{value}</b>")
-
-    pdf_path = f"{waiver_type.replace(' ', '_')}.pdf"
-
-    # PDF document setup
+    # -------------------------------
+    # Create PDF in memory
+    # -------------------------------
+    pdf_buffer = io.BytesIO()
     doc = SimpleDocTemplate(
-        pdf_path,
+        pdf_buffer,
         pagesize=LETTER,
         leftMargin=40,
         rightMargin=40,
@@ -94,7 +102,6 @@ if st.button("Generate PDF"):
         bottomMargin=40
     )
 
-    # Split lines
     lines = rendered_text.splitlines()
     flowables = []
 
@@ -110,14 +117,14 @@ if st.button("Generate PDF"):
         header_style = ParagraphStyle(
             name="Header",
             fontName="Times-Roman",
-            fontSize=14,          # larger font
+            fontSize=14,
             leading=16,
-            alignment=TA_CENTER,  # centered
+            alignment=TA_CENTER,
             spaceAfter=12,
         )
         flowables.append(Paragraph(f"<b>{header_line}</b>", header_style))
 
-    # Preformatted style for the rest of the document
+    # Preformatted style for rest of document
     pre_style = ParagraphStyle(
         name="Preformatted",
         fontName="Times-Roman",
@@ -128,18 +135,21 @@ if st.button("Generate PDF"):
         spaceAfter=2,
     )
 
-    # Preserve exact formatting from the .txt files (including signature section)
+    # Preserve formatting (signature section included)
     lines = [line.replace('\t', '    ') for line in lines]
     for line in lines:
         flowables.append(Paragraph(f"<pre>{line}</pre>", pre_style))
 
     doc.build(flowables)
 
-    st.success(f"PDF generated: {pdf_path}")
+    # Download button
+    st.success("PDF generated successfully!")
     st.download_button(
         "Download PDF",
-        data=open(pdf_path, "rb").read(),
-        file_name=pdf_path
+        data=pdf_buffer.getvalue(),
+        file_name=f"{waiver_type.replace(' ', '_')}.pdf",
+        mime="application/pdf"
     )
+
 
 
