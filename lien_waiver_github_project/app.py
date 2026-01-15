@@ -57,6 +57,7 @@ fields = {
     "total_payments": st.text_input("Total Payments Received to Date"),
     "requisition_number": st.text_input("Requisition No."),
     "date_of_this_requisition": st.text_input("Date of this Requisition"),
+    "amount_of_this_requisition": st.text_input("Amount of this Requisition"),
     "final_application_date": st.text_input("Date of Final Application for Payment"),
     "final_application_amount": st.text_input("Amount of Final Application for Payment"),
 }
@@ -140,4 +141,5 @@ if st.button("Generate PDF"):
         data=open(pdf_path, "rb").read(),
         file_name=pdf_path
     )
+
 
